@@ -8,13 +8,24 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "supersecretkeyuntukflashmessage"
 
+# 1. KONEKSI KE S3 LOCALSTACK
 s3_client = boto3.client(
     's3',
-    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-    region_name=os.getenv('AWS_DEFAULT_REGION'),
-    endpoint_url=os.getenv('AWS_ENDPOINT_URL')
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', 'test'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', 'test'),
+    region_name=os.getenv('AWS_DEFAULT_REGION', 'us-east-1'),
+    endpoint_url=os.getenv('AWS_ENDPOINT_URL', 'http://localhost:4566')
 )
+
+# 2. KONEKSI BARU KE DYNAMODB LOCALSTACK
+dynamodb = boto3.resource(
+    'dynamodb',
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', 'test'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', 'test'),
+    region_name=os.getenv('AWS_DEFAULT_REGION', 'us-east-1'),
+    endpoint_url=os.getenv('AWS_ENDPOINT_URL', 'http://localhost:4566')
+)
+db_table = dynamodb.Table('CreatorAssets')
 
 BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
 
@@ -35,38 +46,32 @@ def dashboard():
                 folder_key = prefix['Prefix'] 
                 album_name = folder_key.rstrip('/')
                 
-                cover_url = ""
-                title = album_name
-                description = "Belum ada deskripsi."
-                raw_position = "50 50"
-                
-                # 1. Ambil Judul & Deskripsi dari Folder
+                # AMBIL METADATA DARI DATABASE DYNAMODB (Bukan S3 Tags lagi)
+                db_item = {}
                 try:
-                    tags = s3_client.get_object_tagging(Bucket=BUCKET_NAME, Key=folder_key)
-                    for tag in tags.get('TagSet', []):
-                        if tag['Key'] == 'Title': title = tag['Value']
-                        if tag['Key'] == 'Description': description = tag['Value']
-                except: pass
+                    response = db_table.get_item(Key={'file_key': folder_key})
+                    db_item = response.get('Item', {})
+                except:
+                    pass
                 
-                # 2. Ambil Foto Terbaru sebagai Sampul
+                title = db_item.get('Title', album_name)
+                description = db_item.get('Description', 'Belum ada deskripsi.')
+                raw_position = db_item.get('Position', '50 50')
+                
+                # Ambil Foto Pertama sebagai Sampul dari S3
+                cover_url = ""
                 contents_res = s3_client.list_objects_v2(Bucket=BUCKET_NAME, Prefix=folder_key)
                 if 'Contents' in contents_res:
-                    # Dihapus reverse=True nya agar sampul selalu mengambil foto pertama (paling awal)
                     sorted_contents = sorted(contents_res['Contents'], key=lambda x: x['LastModified'])
                     for obj in sorted_contents:
-                        if obj['Key'] != folder_key: # Abaikan file folder itu sendiri
+                        if obj['Key'] != folder_key:
                             cover_url = s3_client.generate_presigned_url('get_object', Params={'Bucket': BUCKET_NAME, 'Key': obj['Key']}, ExpiresIn=3600)
-                            try:
-                                img_tags = s3_client.get_object_tagging(Bucket=BUCKET_NAME, Key=obj['Key'])
-                                for tag in img_tags.get('TagSet', []):
-                                    if tag['Key'] == 'Position': raw_position = tag['Value']
-                            except: pass
-                            break # Cukup ambil 1 foto teratas
+                            break 
                 
                 pos_parts = raw_position.split()
                 css_position = f"{pos_parts[0]}% {pos_parts[1]}%" if len(pos_parts) == 2 else "50% 50%"
                 
-                if cover_url: # Hanya tampilkan jika album ada isinya
+                if cover_url: 
                     albums.append({
                         'name': album_name,
                         'title': title,
@@ -85,13 +90,23 @@ def upload_album():
     file = request.files['file']
     
     if file.filename != '':
-        album_name = os.path.splitext(file.filename)[0] # Jadikan nama file sebagai nama album
+        album_name = os.path.splitext(file.filename)[0]
         folder_key = f"{album_name}/"
         file_key = f"{album_name}/{file.filename}"
         
         try:
-            s3_client.put_object(Bucket=BUCKET_NAME, Key=folder_key) # Buat Folder
-            s3_client.upload_fileobj(file, BUCKET_NAME, file_key, ExtraArgs={"ContentType": file.content_type}) # Masukkan Foto
+            s3_client.put_object(Bucket=BUCKET_NAME, Key=folder_key) 
+            s3_client.upload_fileobj(file, BUCKET_NAME, file_key, ExtraArgs={"ContentType": file.content_type}) 
+            
+            # INISIALISASI DATA AWAL KE DATABASE
+            db_table.put_item(
+                Item={
+                    'file_key': folder_key,
+                    'Title': album_name,
+                    'Description': 'Belum ada deskripsi.',
+                    'Position': '50 50'
+                }
+            )
             flash(f"Album baru dibuat!", "success")
         except Exception as e:
             flash(f"Gagal membuat album: {str(e)}", "danger")
@@ -106,16 +121,16 @@ def update_album(album_name):
     folder_key = f"{album_name}/"
     
     try:
-        s3_client.put_object_tagging(Bucket=BUCKET_NAME, Key=folder_key, Tagging={'TagSet': [{'Key': 'Title', 'Value': new_title}, {'Key': 'Description', 'Value': new_desc}]})
-        
-        contents = s3_client.list_objects_v2(Bucket=BUCKET_NAME, Prefix=folder_key)
-        if 'Contents' in contents:
-            sorted_contents = sorted(contents['Contents'], key=lambda x: x['LastModified'], reverse=True)
-            for obj in sorted_contents:
-                if obj['Key'] != folder_key:
-                    s3_client.put_object_tagging(Bucket=BUCKET_NAME, Key=obj['Key'], Tagging={'TagSet': [{'Key': 'Position', 'Value': new_pos}]})
-                    break
-        flash("Info album diperbarui!", "success")
+        # UPDATE DATA LANGSUNG KE DATABASE
+        db_table.put_item(
+            Item={
+                'file_key': folder_key,
+                'Title': new_title,
+                'Description': new_desc,
+                'Position': new_pos
+            }
+        )
+        flash("Info album diperbarui via Database!", "success")
     except Exception as e:
         flash(f"Gagal: {str(e)}", "danger")
         
@@ -125,11 +140,16 @@ def update_album(album_name):
 def delete_album(album_name):
     folder_key = f"{album_name}/"
     try:
+        # 1. Hapus isi S3
         contents = s3_client.list_objects_v2(Bucket=BUCKET_NAME, Prefix=folder_key)
         if 'Contents' in contents:
             for obj in contents['Contents']: s3_client.delete_object(Bucket=BUCKET_NAME, Key=obj['Key'])
         s3_client.delete_object(Bucket=BUCKET_NAME, Key=folder_key)
-        flash("Album berhasil dihapus!", "success")
+        
+        # 2. Hapus catatan dari Database
+        db_table.delete_item(Key={'file_key': folder_key})
+        
+        flash("Album dan Data berhasil dihapus!", "success")
     except Exception as e:
         flash(f"Gagal menghapus: {str(e)}", "danger")
     return redirect(url_for('dashboard'))
@@ -141,15 +161,15 @@ def delete_album(album_name):
 def view_album(album_name):
     photos = []
     folder_key = f"{album_name}/"
-    album_title = album_name # Default jika judul belum di-edit
     
-    # --- TAMBAHAN BARU: Ambil judul dari Tag S3 Folder ---
+    # AMBIL JUDUL ALBUM DARI DATABASE
+    album_title = album_name 
     try:
-        tags = s3_client.get_object_tagging(Bucket=BUCKET_NAME, Key=folder_key)
-        for tag in tags.get('TagSet', []):
-            if tag['Key'] == 'Title': album_title = tag['Value']
-    except: pass
-    # -----------------------------------------------------
+        response = db_table.get_item(Key={'file_key': folder_key})
+        if 'Item' in response:
+            album_title = response['Item'].get('Title', album_name)
+    except:
+        pass
 
     try:
         res = s3_client.list_objects_v2(Bucket=BUCKET_NAME, Prefix=folder_key)
@@ -163,7 +183,6 @@ def view_album(album_name):
     except Exception as e:
         flash(f"Error: {str(e)}", "danger")
         
-    # Perhatikan: Sekarang kita mengirimkan album_title juga ke HTML
     return render_template('album.html', photos=photos, album_name=album_name, album_title=album_title)
 
 @app.route('/upload_photo/<album_name>', methods=['POST'])
