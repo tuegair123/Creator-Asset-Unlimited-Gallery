@@ -32,7 +32,7 @@ s3-creator-hub/
 3. LANGKAH-LANGKAH MENJALANKAN PROJEK (STEP-BY-STEP)
 ------------------------------------------------------------------------
 
-Awali buka terminal : git clone 
+Awali buka terminal : git clone https://github.com/tuegair123/Creator-Asset-Unlimited-Gallery.git
 Buat virtual environment : python -m venv .venv
 Aktivasi virual environment : .\.venv\Scripts\activate
 
