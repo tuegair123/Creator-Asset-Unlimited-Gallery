@@ -32,6 +32,10 @@ s3-creator-hub/
 3. LANGKAH-LANGKAH MENJALANKAN PROJEK (STEP-BY-STEP)
 ------------------------------------------------------------------------
 
+Awali buka terminal : git clone 
+Buat virtual environment : python -m venv .venv
+Aktivasi virual environment : .\.venv\Scripts\activate
+
 Langkah 1: Instalasi Dependency Python
 Open terminal di folder 's3-creator-hub', lalu jalankan perintah:
 > pip install -r requirements.txt
