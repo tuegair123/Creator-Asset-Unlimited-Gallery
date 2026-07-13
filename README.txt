@@ -21,6 +21,7 @@ Sebelum menjalankan projek, pastikan komponen berikut sudah terinstal:
 ------------------------------------------------------------------------
 s3-creator-hub/
 │
+├── create_db.py            # Database dynamoDB
 ├── app.py                  # File utama Flask (Backend)
 ├── .env                    # Konfigurasi Environment & Kredensial AWS Lokal
 ├── requirements.txt        # Daftar dependency Python
@@ -31,6 +32,10 @@ s3-creator-hub/
 ------------------------------------------------------------------------
 3. LANGKAH-LANGKAH MENJALANKAN PROJEK (STEP-BY-STEP)
 ------------------------------------------------------------------------
+
+Awali buka terminal : git clone https://github.com/tuegair123/Creator-Asset-Unlimited-Gallery.git
+Buat virtual environment : python -m venv .venv
+Aktivasi virual environment : .\.venv\Scripts\activate
 
 Langkah 1: Instalasi Dependency Python
 Open terminal di folder 's3-creator-hub', lalu jalankan perintah:
@@ -57,29 +62,31 @@ Buka TERMINAL BARU (Tab baru), lalu eksekusi perintah AWS CLI berikut untuk
 membuat bucket di dalam LocalStack:
 > aws --endpoint-url=http://localhost:4566 s3 mb s3://bucket-tegar
 (Jika sukses, akan muncul balasan: make_bucket: bucket-tegar)
+> python create_db.py
+(Buat database dynamoDB)
 
 Langkah 5: Menjalankan Server Flask
 Kembali ke terminal utama projek, lalu jalankan perintah:
 > python app.py
 
-Langkah 6: Akses Aplikasi
+Langkah 6: Konfigurasi stackport
+Buka web browser anda
+> http://localhost:8080
+Masuk ke menu Settings > Endpoints > + Add Endpoint.
+Isi konfigurasi berikut agar StackPort bisa menembus isolasi jaringan Docker:
+
+Name: Localstack
+Endpoint URL: http://host.docker.internal:4566 (Wajib menggunakan URL ini, jangan menggunakan localhost)
+Region: us-east-1
+Authentication: Pilih Manual / Static Credentials
+Access Key ID: test
+Secret Access Key: test
+Klik Test Connection. Jika status sudah berubah menjadi Healthy (Hijau), simpan konfigurasi tersebut.
+
+Gunakan menu Resources di sebelah kiri untuk melihat isi bucket S3 dan perubahan rekaman data pada tabel CreatorAssets di DynamoDB.
+
+Langkah 7: Akses Aplikasi
 Buka web browser Anda (Chrome/Edge/Firefox) lalu ketik URL berikut:
 > http://127.0.0.1:5000
 
-------------------------------------------------------------------------
-4. CATATAN PENTING & TROUBLESHOOTING
-------------------------------------------------------------------------
-- Masalah Gambar Tidak Tampil (HEIC/Format Khusus Apple):
-  Browser secara default tidak mendukung rendering file format .heic. Gunakan
-  format gambar standar seperti .jpg atau .png untuk testing visual.
-  
-- Mengapa Menggunakan LocalStack Versi 4.4.0?
-  Versi 'latest' LocalStack (Mulai tahun 2026) mewajibkan aktivasi lisensi 
-  berupa Auth Token meskipun menggunakan fitur gratis (Community). Menurunkan 
-  ke versi 4.4.0 melewati batasan tersebut sehingga aman digunakan tanpa login.
 
-- Error 'NoSuchBucket':
-  Terjadi jika server Flask di-restart sebelum perintah 'aws s3 mb' dijalankan, 
-  atau jika container LocalStack sempat mati (karena data LocalStack bersifat 
-  ephemeral/sementara di memori container). Cukup buat ulang bucket-nya.
-========================================================================
