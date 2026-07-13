@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARSIP — Galeri Arsip Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --void:#08090c;
+            --panel:#12151c;
+            --border:#262b38;
+            --brass:#c9a445;
+            --brass-soft:#8b7332;
+            --cyan:#5eeaf0;
+            --cyan-dim:#2a6e72;
+            --ink:#edeae2;
+            --ink-dim:#9199a8;
+        }
+        html,body{ background:var(--void); }
+        body{
+            font-family:'Inter', sans-serif;
+            color:var(--ink);
+            background:
+                radial-gradient(ellipse 700px 480px at 18% -8%, rgba(94,234,240,0.10), transparent 60%),
+                radial-gradient(ellipse 800px 560px at 88% 12%, rgba(201,164,69,0.09), transparent 60%),
+                radial-gradient(ellipse 900px 700px at 50% 110%, rgba(94,234,240,0.05), transparent 60%),
+                var(--void);
+        }
+        .font-display{ font-family:'Space Grotesk', sans-serif; }
+        .font-mono{ font-family:'IBM Plex Mono', monospace; }
+
+        .floor-grid{
+            position:absolute; inset:0;
+            background-image:
+                linear-gradient(rgba(94,234,240,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(94,234,240,0.05) 1px, transparent 1px);
+            background-size:56px 56px;
+            -webkit-mask-image: radial-gradient(ellipse 900px 600px at 50% 40%, black, transparent 75%);
+                    mask-image: radial-gradient(ellipse 900px 600px at 50% 40%, black, transparent 75%);
+        }
+
+        .rule-brass{
+            width:64px; height:1px;
+            background:linear-gradient(90deg, transparent, var(--brass), transparent);
+            margin:0 auto;
+        }
+
+        .eyebrow{
+            font-family:'IBM Plex Mono', monospace;
+            letter-spacing:.22em;
+            font-size:11px;
+            color:var(--brass);
+        }
+
+        .plaque{
+            border:1px solid var(--border);
+            background:rgba(18,21,28,0.55);
+            backdrop-filter: blur(6px);
+        }
+
+        .cta{
+            font-family:'IBM Plex Mono', monospace;
+            letter-spacing:.08em;
+            background:linear-gradient(180deg, #dcbb63, #b8933a);
+            color:#161208;
+            box-shadow: 0 12px 40px -12px rgba(201,164,69,0.55);
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .cta:hover{ transform: translateY(-2px); box-shadow: 0 16px 48px -12px rgba(201,164,69,0.7); }
+
+        @keyframes rise{
+            from{ opacity:0; transform: translateY(14px); }
+            to{ opacity:1; transform: translateY(0); }
+        }
+        .rise-1{ animation: rise .7s ease .05s both; }
+        .rise-2{ animation: rise .7s ease .18s both; }
+        .rise-3{ animation: rise .7s ease .32s both; }
+        .rise-4{ animation: rise .7s ease .46s both; }
+
+        @media (prefers-reduced-motion: reduce){
+            .rise-1,.rise-2,.rise-3,.rise-4{ animation:none; opacity:1; }
+        }
+
+        .spotlight{
+            position:absolute; top:-140px; left:50%; transform:translateX(-50%);
+            width:900px; height:520px;
+            background: radial-gradient(ellipse at top, rgba(94,234,240,0.14), transparent 65%);
+            pointer-events:none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center relative overflow-hidden">
+
+    <div class="spotlight"></div>
+    <div class="floor-grid"></div>
+
+    <div class="absolute top-8 inset-x-0 flex justify-center items-center gap-3 rise-1">
+    <span class="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_var(--cyan)] shrink-0"></span>
+    <span class="eyebrow text-center">GALERI ARSIP DIGITAL &mdash; CLOUD STORAGE S3</span>
+    <span class="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_var(--cyan)] shrink-0"></span>
+    </div>
+
+    <div class="z-10 text-center px-4 max-w-2xl">
+        <p class="eyebrow mb-5 rise-2">TEGARWBSN PROJECT</p>
+
+        <h1 class="font-display text-5xl md:text-6xl font-bold mb-6 tracking-tight rise-3">
+            Selamat Datang di
+            <span class="block mt-2 bg-gradient-to-r from-[var(--cyan)] to-[var(--brass)] bg-clip-text text-transparent">
+                Unlimited Archive
+            </span>
+        </h1>
+
+        <div class="rule-brass mb-6 rise-3"></div>
+
+        <p class="text-[var(--ink-dim)] text-lg mb-10 leading-relaxed rise-3">
+            Sebuah galeri digital untuk koleksi dokumentasi, desain, dan jejak petualanganmu &mdash;
+            dikurasi, diberi katalog, dan disimpan tanpa batas.
+        </p>
+
+        <a href="/dashboard" class="cta inline-flex items-center gap-2 font-semibold px-8 py-4 rounded-full text-sm rise-4">
+            Masuki Galeri
+            <span aria-hidden="true">&rarr;</span>
+        </a>
+
+        <p class="font-mono text-[10px] text-[var(--ink-dim)] mt-8 tracking-widest rise-4">
+            AKSES TERKENDALI &middot; S3 LOKAL &middot; KURASI TANPA BATAS
+        </p>
+    </div>
+
+</body>
+</html>

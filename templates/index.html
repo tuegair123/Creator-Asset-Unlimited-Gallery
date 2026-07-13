@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARSIP — Koleksi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --void:#08090c;
+            --panel:#12151c;
+            --panel-2:#171b24;
+            --border:#262b38;
+            --brass:#c9a445;
+            --brass-soft:#8b7332;
+            --cyan:#5eeaf0;
+            --cyan-dim:#2a6e72;
+            --ink:#edeae2;
+            --ink-dim:#9199a8;
+            --danger:#d9695f;
+            --success:#6fbf8b;
+        }
+        html,body{ background:var(--void); }
+        body{
+            font-family:'Inter', sans-serif;
+            color:var(--ink);
+            background:
+                radial-gradient(ellipse 600px 400px at 12% -6%, rgba(94,234,240,0.07), transparent 60%),
+                radial-gradient(ellipse 700px 480px at 92% 6%, rgba(201,164,69,0.06), transparent 60%),
+                var(--void);
+        }
+        .font-display{ font-family:'Space Grotesk', sans-serif; }
+        .font-mono{ font-family:'IBM Plex Mono', monospace; }
+
+        .eyebrow{
+            font-family:'IBM Plex Mono', monospace;
+            letter-spacing:.2em;
+            font-size:10.5px;
+            color:var(--brass);
+        }
+
+        .rule-brass{ height:1px; background:linear-gradient(90deg, var(--brass), transparent 70%); }
+
+        .btn-brass{
+            font-family:'IBM Plex Mono', monospace;
+            letter-spacing:.05em;
+            background:linear-gradient(180deg, #dcbb63, #b8933a);
+            color:#161208;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .btn-brass:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px -10px rgba(201,164,69,0.6); }
+
+        .uploader{
+            background: rgba(18,21,28,0.6);
+            border:1px solid var(--border);
+            backdrop-filter: blur(6px);
+        }
+
+        /* vitrine card */
+        .vitrine{
+            background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 30%), var(--panel);
+            border:1px solid var(--border);
+            position:relative;
+            overflow:hidden;
+            transition: border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+        }
+        .vitrine:hover{
+            border-color: rgba(94,234,240,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 24px 48px -24px rgba(0,0,0,0.7), 0 0 0 1px rgba(94,234,240,0.12);
+        }
+        .vitrine .scanline{
+            position:absolute; left:0; right:0; top:0; height:2px;
+            background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+            opacity:0; transform:translateY(0);
+        }
+        .vitrine:hover .scanline{ opacity:1; animation: scan 2.2s linear infinite; }
+        @keyframes scan{
+            0%{ transform:translateY(0); opacity:0; }
+            8%{ opacity:.9; }
+            92%{ opacity:.9; }
+            100%{ transform:translateY(192px); opacity:0; }
+        }
+
+        .plate{
+            font-family:'IBM Plex Mono', monospace;
+            font-size:10px; letter-spacing:.1em;
+            color:var(--brass);
+            background:rgba(8,9,12,0.72);
+            border:1px solid var(--brass-soft);
+            padding:3px 8px;
+            backdrop-filter: blur(4px);
+        }
+
+        .divider-dashed{ border-top:1px dashed var(--border); }
+
+        .empty-hall{
+            border:1px dashed var(--border);
+            background: radial-gradient(ellipse 500px 260px at 50% 0%, rgba(94,234,240,0.05), transparent 70%);
+        }
+
+        .link-cyan{ color: var(--cyan); }
+        .link-cyan:hover{ color:#a6f5f8; }
+        .link-danger{ color: var(--danger); }
+        .link-danger:hover{ color:#f0958c; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+
+        <header class="flex flex-col sm:flex-row justify-between sm:items-end gap-6 pb-6 mb-8 border-b border-[var(--border)]">
+            <div>
+                <p class="eyebrow mb-2">GALERI ARSIP DIGITAL &middot; RUANG UTAMA</p>
+                <h1 class="font-display text-3xl font-bold tracking-tight">
+                    Unlimited <span class="bg-gradient-to-r from-[var(--cyan)] to-[var(--brass)] bg-clip-text text-transparent">Archive</span>
+                </h1>
+                <div class="rule-brass w-16 mt-3"></div>
+            </div>
+
+            <form action="/upload_album" method="POST" enctype="multipart/form-data" class="uploader flex items-center gap-2 p-2 rounded-lg">
+                <input type="file" name="file" required class="text-xs text-[var(--ink-dim)] file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:font-mono file:bg-[var(--panel-2)] file:text-[var(--ink)] file:border file:border-[var(--border)] hover:file:border-[var(--cyan-dim)] cursor-pointer">
+                <button type="submit" class="btn-brass font-medium px-4 py-2 rounded-md text-xs whitespace-nowrap">
+                    Submit
+                </button>
+            </form>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-6 p-4 rounded-lg text-sm font-mono {% if category == 'success' %} bg-[rgba(111,191,139,0.08)] border border-[rgba(111,191,139,0.4)] text-[#bfe8ce] {% else %} bg-[rgba(217,105,95,0.08)] border border-[rgba(217,105,95,0.4)] text-[#f0c6c1] {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if albums %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-start">
+                {% for album in albums %}
+                    <div class="vitrine rounded-xl overflow-hidden shadow-lg">
+                        <div class="scanline"></div>
+
+                        <div id="img-container-{{ loop.index }}" class="h-48 w-full bg-[var(--void)] flex items-center justify-center overflow-hidden relative" onmousedown="initDrag(event, 'img-{{ loop.index }}', 'pos-{{ loop.index }}')">
+                            <span class="plate absolute top-2.5 left-2.5 z-10">EXH.{{ '%03d'|format(loop.index) }}</span>
+                            <img id="img-{{ loop.index }}" src="{{ album.cover_url }}" style="object-position: {{ album.position }};" class="w-full h-full object-cover pointer-events-none">
+                        </div>
+
+                        <div class="p-4 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-display font-bold text-lg truncate text-[var(--brass)]" title="{{ album.title }}">{{ album.title }}</h3>
+                                <p class="font-mono text-[10px] text-[var(--ink-dim)] mt-1 truncate tracking-wide">ARSIP S3: {{ album.name }}/</p>
+                                <p class="text-sm text-[var(--ink-dim)] mt-3 italic line-clamp-2">&ldquo;{{ album.description }}&rdquo;</p>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-5 pt-3 border-t border-[var(--border)]">
+                                <a href="/album/{{ album.name }}" class="btn-brass text-xs font-semibold px-4 py-2 rounded shadow">
+                                    Masuk Gallery &rarr;
+                                </a>
+
+                                <div class="flex items-center gap-4">
+                                    <button type="button" onclick="toggleEdit('{{ loop.index }}')" class="link-cyan text-xs font-medium font-mono">Edit Info</button>
+                                    <form action="{{ url_for('delete_album', album_name=album.name) }}" method="POST" onsubmit="return confirm('Peringatan: Menghapus ruang pamer akan menghapus SEMUA KOLEKSI di dalamnya. Lanjutkan?');">
+                                        <button type="submit" class="link-danger text-xs font-medium font-mono">Hapus</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div id="edit-form-{{ loop.index }}" class="hidden mt-4 pt-4 divider-dashed transition">
+                                <form action="{{ url_for('update_album', album_name=album.name) }}" method="POST" class="flex flex-col gap-2">
+                                    <label class="eyebrow">Judul Ruang Pamer</label>
+                                    <input type="text" name="title" value="{{ album.title }}" required class="bg-[var(--void)] border border-[var(--border)] rounded px-2 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--cyan-dim)]">
+
+                                    <label class="eyebrow mt-1">Deskripsi Kurator</label>
+                                    <textarea name="description" required rows="2" class="bg-[var(--void)] border border-[var(--border)] rounded px-2 py-1.5 text-sm text-[var(--ink)] focus:outline-none focus:border-[var(--cyan-dim)]">{{ album.description }}</textarea>
+
+                                    <input type="hidden" id="pos-{{ loop.index }}" name="position" value="{{ album.position }}">
+                                    <p class="font-mono text-[10px] text-[var(--cyan)] mt-2 tracking-wide">*Geser mouse pada foto di atas untuk mengatur fokus sampul vitrine.</p>
+
+                                    <button type="submit" class="mt-4 bg-[var(--panel-2)] hover:bg-[#1f2430] border border-[var(--border)] text-[var(--ink)] font-medium font-mono text-xs px-3 py-2 rounded">Simpan Perubahan</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-hall text-center py-20 rounded-2xl">
+                <p class="eyebrow mb-3">RUANG PAMER KOSONG</p>
+                <p class="text-[var(--ink-dim)]">Belum ada koleksi di galeri ini. Upload satu foto di atas untuk membuka ruang pamer pertamamu!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // FUNGSI: Mengontrol tampilan Kursor dan membuka Form Edit
+        function toggleEdit(index) {
+            let form = document.getElementById('edit-form-' + index);
+            let imgContainer = document.getElementById('img-container-' + index);
+
+            form.classList.toggle('hidden');
+
+            // Jika form tertutup, hilangkan kursor geser. Jika terbuka, aktifkan kursornya.
+            if (form.classList.contains('hidden')) {
+                imgContainer.classList.remove('cursor-move');
+                imgContainer.removeAttribute('title');
+            } else {
+                imgContainer.classList.add('cursor-move');
+                imgContainer.setAttribute('title', 'Tahan klik dan geser foto');
+            }
+        }
+
+        let activeImg=null; let activeInput=null; let startX, startY, startPosX, startPosY;
+
+        function initDrag(e, imgId, inputId) {
+            let loopIndex = imgId.split('-')[1];
+            let editForm = document.getElementById('edit-form-' + loopIndex);
+
+            // PENCEGAHAN: Jika form edit masih tertutup, batalkan fungsi geser
+            if (editForm.classList.contains('hidden')) {
+                return;
+            }
+
+            e.preventDefault();
+            activeImg = document.getElementById(imgId);
+            activeInput = document.getElementById(inputId);
+            startX = e.clientX;
+            startY = e.clientY;
+
+            let currentPos = activeImg.style.objectPosition || '50% 50%';
+            let parts = currentPos.split(' ');
+            startPosX = parseFloat(parts[0]) || 50;
+            startPosY = parseFloat(parts[1]) || 50;
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function onDrag(e) {
+            if(!activeImg) return;
+            let dx = e.clientX - startX;
+            let dy = e.clientY - startY;
+            let newX = Math.min(100, Math.max(0, startPosX - (dx * 0.25)));
+            let newY = Math.min(100, Math.max(0, startPosY - (dy * 0.25)));
+            let newPos = `${newX.toFixed(2)}% ${newY.toFixed(2)}%`;
+            activeImg.style.objectPosition = newPos;
+            if(activeInput) activeInput.value = newPos;
+        }
+
+        function stopDrag() {
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+            activeImg = null;
+            activeInput = null;
+        }
+    </script>
+</body>
+</html>
