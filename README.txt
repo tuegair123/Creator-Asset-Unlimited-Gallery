@@ -70,6 +70,8 @@ Kembali ke terminal utama projek, lalu jalankan perintah:
 > python app.py
 
 Langkah 6: Konfigurasi stackport
+Buka Docker Desktop nya
+Aktifkan stackport localhost:8080
 Buka web browser anda
 > http://localhost:8080
 Masuk ke menu Settings > Endpoints > + Add Endpoint.
@@ -83,6 +85,7 @@ Access Key ID: test
 Secret Access Key: test
 Klik Test Connection. Jika status sudah berubah menjadi Healthy (Hijau), simpan konfigurasi tersebut.
 
+Ganti penggunaan endpoint yang sudah dibuat, disebelah kiri bawah, dari default menjadi localstack
 Gunakan menu Resources di sebelah kiri untuk melihat isi bucket S3 dan perubahan rekaman data pada tabel CreatorAssets di DynamoDB.
 
 Langkah 7: Akses Aplikasi
