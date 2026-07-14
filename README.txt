@@ -43,7 +43,7 @@ Open terminal di folder 's3-creator-hub', lalu jalankan perintah:
 (Tunggu hingga proses selesai dan muncul pesan 'Successfully installed')
 
 Langkah 2: Konfigurasi Environment (.env)
-Pastikan file '.env' di direktori utama sudah berisi konfigurasi berikut:
+Pastikan file '.env' di direktori utama sudah berisi konfigurasi berikut: (BUAT JIKA TIDAK ADA)
 ---
 AWS_ACCESS_KEY_ID=test
 AWS_SECRET_ACCESS_KEY=test
